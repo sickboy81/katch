@@ -189,8 +189,61 @@ app.post('/download', async (req, res) => {
             return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
         }
 
+        // 6. FACEBOOK
+        else if (url.includes('facebook.com') || url.includes('fb.watch')) {
+            console.log("  -> Link detectado: Facebook");
+            finalFilename = `fb_${timestamp}.mp4`;
+            outputPath = path.join(downloadsDir, finalFilename);
+
+            const { data: html } = await axios.get(url, {
+                headers: { 'User-Agent': 'Mozilla/5.0' }
+            });
+
+            // Regex basicas para extrair URLs de vídeo do FB (SD/HD)
+            const hdMatch = html.match(/hd_src:"([^"]+)"/);
+            const sdMatch = html.match(/sd_src:"([^"]+)"/);
+            const videoUrl = hdMatch ? hdMatch[1] : (sdMatch ? sdMatch[1] : null);
+
+            if (!videoUrl) {
+                return res.status(404).json({ success: false, error: 'Não foi possível encontrar o vídeo neste link do Facebook. Pode ser um vídeo privado ou o link expirou.' });
+            }
+
+            if (justLink) {
+                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+            }
+
+            await downloadFromDirectLink(videoUrl, outputPath);
+            console.log(`  -> Sucesso: ${finalFilename}`);
+            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
+        }
+
+        // 7. TUMBLR
+        else if (url.includes('tumblr.com')) {
+            console.log("  -> Link detectado: Tumblr");
+            finalFilename = `tumblr_${timestamp}.mp4`;
+            outputPath = path.join(downloadsDir, finalFilename);
+
+            const { data: html } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+
+            // Procura por meta og:video ou src do vídeo
+            const videoMatch = html.match(/<meta property="og:video" content="([^"]+)"/) || html.match(/source src="([^"]+)"/);
+            const videoUrl = videoMatch ? videoMatch[1] : null;
+
+            if (!videoUrl) {
+                return res.status(404).json({ success: false, error: 'Vídeo do Tumblr não encontrado.' });
+            }
+
+            if (justLink) {
+                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+            }
+
+            await downloadFromDirectLink(videoUrl, outputPath);
+            console.log(`  -> Sucesso: ${finalFilename}`);
+            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
+        }
+
         else {
-            return res.status(400).json({ success: false, error: 'Plataforma não suportada. Use Youtube, Instagram, X ou TikTok.' });
+            return res.status(400).json({ success: false, error: 'Plataforma não suportada. Use Youtube, Instagram, X, TikTok, Reddit, Facebook ou Tumblr.' });
         }
 
     } catch (err) {
@@ -202,6 +255,6 @@ app.post('/download', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`========================================================`);
     console.log(`🎬 Servidor de Download iniciado na porta: ${PORT}`);
-    console.log(`✅ Suporte a: YouTube, Instagram, X (Twitter) e TikTok!`);
+    console.log(`✅ Suporte a: YouTube, Instagram, X, TikTok, Reddit, FB e Tumblr!`);
     console.log(`========================================================`);
 });
