@@ -1,0 +1,67 @@
+{
+    "manifest_version": 3,
+    "name": "Katch - Pescador de Vídeos",
+    "version": "2.2",
+    "description": "O ímã supremo de vídeos! Extraia e baixe vídeos no YouTube, Instagram, X e TikTok sem marca d'água.",
+    "permissions": [
+        "activeTab",
+        "downloads",
+        "storage",
+        "clipboardRead",
+        "scripting",
+        "tabs",
+        "notifications"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": "icon128.png",
+        "default_title": "Katch - Pescador de Vídeos"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.youtube.com/*",
+                "*://*.instagram.com/*",
+                "*://*.twitter.com/*",
+                "*://*.x.com/*",
+                "*://*.tiktok.com/*",
+                "*://*.facebook.com/*",
+                "*://*.fb.watch/*",
+                "*://*.tumblr.com/*",
+                "*://*.pinterest.com/*",
+                "*://*.pin.it/*",
+                "*://*.vimeo.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "content.css"
+            ],
+            "run_at": "document_end"
+        }
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "icons": {
+        "16": "icon128.png",
+        "48": "icon128.png",
+        "128": "icon128.png"
+    },
+    "host_permissions": [
+        "http://localhost:3000/*",
+        "*://*.youtube.com/*",
+        "*://*.instagram.com/*",
+        "*://*.twitter.com/*",
+        "*://*.x.com/*",
+        "*://*.tiktok.com/*",
+        "*://*.facebook.com/*",
+        "*://*.fb.watch/*",
+        "*://*.tumblr.com/*",
+        "*://*.pinterest.com/*",
+        "*://*.pin.it/*",
+        "*://*.vimeo.com/*",
+        "https://api.qrserver.com/*"
+    ]
+}

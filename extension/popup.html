@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+      --success: #10b981;
+      --danger: #ef4444;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Themes */
+    body.theme-light {
+      --bg-color: #f1f5f9;
+      --card-bg: rgba(255, 255, 255, 0.8);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: rgba(0, 0, 0, 0.1);
+    }
+
+    body.theme-neon {
+      --primary: #22d3ee;
+      --primary-hover: #0891b2;
+      --bg-color: #000;
+      --card-bg: rgba(34, 211, 238, 0.05);
+      --border: rgba(34, 211, 238, 0.2);
+    }
+
+    body {
+      width: 340px;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-main);
+      overflow-x: hidden;
+      transition: var(--transition);
+    }
+
+    /* Top Header */
+    .header {
+      background: linear-gradient(135deg, #4f46e5 0%, #c026d3 100%);
+      padding: 20px 15px;
+      text-align: center;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header h2 {
+      margin: 0;
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .header h2 img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .header p {
+      margin: 5px 0 0 0;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: var(--text-main);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+    }
+
+    /* Container */
+    .container {
+      padding: 20px;
+    }
+
+    /* Forms & Inputs */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"] {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.2);
+      color: white;
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--primary);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn:disabled {
+      background: #475569;
+      cursor: not-allowed;
+      box-shadow: none;
+      color: #94a3b8;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Status Notifications */
+    .status-box {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.3s ease;
+      font-weight: 600;
+    }
+
+    .status-loading {
+      background: rgba(245, 158, 11, 0.1);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .status-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    /* History List */
+    .history-list {
+      max-height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    .history-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.2s;
+    }
+
+    .history-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .history-item img {
+      width: 45px;
+      height: 45px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .history-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .history-item .url {
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .history-item .url:hover {
+      text-decoration: underline;
+    }
+
+    .history-item .date {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .empty-history {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 20px 0;
+    }
+
+    /* Settings section */
+    .settings-notice {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      line-height: 1.5;
+    }
+
+    /* Sections Toggling */
+    .section-content {
+      display: none;
+    }
+
+    .section-content.active {
+      display: block;
+    }
+
+    /* Preview Card */
+    .media-preview {
+      margin-top: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 10px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .media-preview img {
+      width: 100%;
+      max-height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .media-preview .title {
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      color: var(--text-muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* QR Modal Style */
+    #qrContainer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #qrContainer img {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .shortcuts {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid var(--border);
+    }
+
+    .shortcut-icon {
+      cursor: pointer;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+
+    .shortcut-icon:hover {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <h2><img src="icon128.png" alt="Ícone" id="brandIcon"> Katch</h2>
+    <p>O ímã supremo de vídeos 🧲</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-target="tab-auto">Auto</div>
+    <div class="tab" data-target="tab-manual">Manual</div>
+    <div class="tab" data-target="tab-batch">Lote</div>
+    <div class="tab" data-target="tab-screenshot">Print</div>
+    <div class="tab" data-target="tab-history">Baixados</div>
+    <div class="tab" data-target="tab-config">⚙️</div>
+  </div>
+
+  <div class="container">
+
+    <!-- AUTO TAB (Current Tab Download) -->
+    <div id="tab-auto" class="section-content active">
+      <div class="input-group" style="text-align: center; margin-bottom: 25px;">
+        <label>Detectar Mídia na Aba Ativa</label>
+        <span style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Acesse YouTube, Instagram, X ou TikTok
+          e basta clicar no botão abaixo.</span>
+      </div>
+      <button class="btn" id="btnAutoDownload">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Capturar Mídia Única
+      </button>
+
+      <div class="shortcuts" style="flex-wrap: wrap;">
+        <img src="https://www.google.com/s2/favicons?domain=pinterest.com&sz=32" class="shortcut-icon"
+          data-url="https://pinterest.com" title="Pinterest">
+        <img src="https://www.google.com/s2/favicons?domain=vimeo.com&sz=32" class="shortcut-icon"
+          data-url="https://vimeo.com" title="Vimeo">
+        <img src="https://www.google.com/s2/favicons?domain=facebook.com&sz=32" class="shortcut-icon"
+          data-url="https://facebook.com" title="Facebook">
+        <img src="https://www.google.com/s2/favicons?domain=tumblr.com&sz=32" class="shortcut-icon"
+          data-url="https://tumblr.com" title="Tumblr">
+        <img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=32" class="shortcut-icon"
+          data-url="https://youtube.com" title="YouTube">
+        <img src="https://www.google.com/s2/favicons?domain=instagram.com&sz=32" class="shortcut-icon"
+          data-url="https://instagram.com" title="Instagram">
+        <img src="https://www.google.com/s2/favicons?domain=reddit.com&sz=32" class="shortcut-icon"
+          data-url="https://reddit.com" title="Reddit">
+        <img src="https://www.google.com/s2/favicons?domain=twitter.com&sz=32" class="shortcut-icon"
+          data-url="https://twitter.com" title="X (Twitter)">
+        <img src="https://www.google.com/s2/favicons?domain=tiktok.com&sz=32" class="shortcut-icon"
+          data-url="https://tiktok.com" title="TikTok">
+      </div>
+    </div>
+
+    <!-- MANUAL TAB (Paste URL) -->
+    <div id="tab-manual" class="section-content">
+      <div class="input-group">
+        <label>Cole a URL do Vídeo</label>
+        <input type="text" id="manualUrl" placeholder="https://www.tiktok.com/..." autocomplete="off">
+      </div>
+      <button class="btn btn-secondary" id="btnManualDownload">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 8 12 12 16 14"></polyline>
+        </svg>
+        Processar Link
+      </button>
+    </div>
+
+    <!-- BATCH TAB -->
+    <div id="tab-batch" class="section-content">
+      <div class="input-group" style="text-align: center; margin-bottom: 15px;">
+        <label>Download em Lote (Perfis/Canais)</label>
+        <span style="font-size: 11px; color: var(--text-muted); margin-top: 5px;">Acesse a página do perfil (YT, Insta,
+          TikTok) e clique em Escanear.</span>
+      </div>
+
+      <button class="btn" id="btnScanBatch">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        Escanear Mídias na Página
+      </button>
+
+      <div id="batchResults"
+        style="display: none; margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;">
+        <div class="input-group" style="margin-bottom: 10px;">
+          <input type="text" id="batchFilter" placeholder="🔎 Filtrar links (ex: 'tutorial', 'clip')..."
+            style="padding: 8px; font-size: 11px;">
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span id="batchCount" style="font-size: 11px; font-weight: 600; color: var(--primary);">0 links
+            encontrados</span>
+          <button id="btnDownloadBatch" class="btn"
+            style="width: auto; padding: 6px 12px; font-size: 11px; background: var(--success); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">Baixar
+            Tudo</button>
+        </div>
+        <div id="batchLinksScroll"
+          style="max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 8px;">
+          <!-- Links list -->
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREENSHOT TAB -->
+    <div id="tab-screenshot" class="section-content">
+      <div class="input-group" style="text-align: center; margin-bottom: 25px;">
+        <label>Captura de Página Completa</label>
+        <span style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Transforme qualquer site em uma imagem
+          longa e salvável.</span>
+      </div>
+      <button class="btn" id="btnFullCapture">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+        Gerar Print Completo
+      </button>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="tab-history" class="section-content">
+      <div class="input-group" style="flex-direction: row; justify-content: space-between; align-items: center;">
+        <label style="margin: 0;">Seu Histórico Recente</label>
+        <span id="txtTotalDownloads" style="font-size: 11px; color: var(--primary); font-weight: bold;">(0
+          Salvos)</span>
+      </div>
+      <div class="history-list" id="historyList">
+        <!-- Rendered via JS -->
+      </div>
+      <button class="btn btn-secondary" id="btnClearHistory"
+        style="margin-top: 10px; padding: 8px; font-size: 12px; border-color: transparent;">Limpar Histórico</button>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="tab-config" class="section-content">
+      <div class="settings-notice">
+        <strong>Modo de Nuvem:</strong> Se você hospedou o servidor no Render.com, cole a URL pública abaixo. Senão,
+        mantenha localhost.
+      </div>
+      <div class="input-group">
+        <label>Endereço do Servidor Web</label>
+        <input type="text" id="configServerUrl" placeholder="http://localhost:3000">
+      </div>
+
+      <div class="input-group">
+        <label>Tema da Interface</label>
+        <select id="themeSelect"
+          style="padding: 10px; border-radius: 8px; background: rgba(0,0,0,0.2); color: white; border: 1px solid var(--border); width: 100%;">
+          <option value="dark">Dark Ocean (Padrão)</option>
+          <option value="light">Light Glass (Claro)</option>
+          <option value="neon">Cyber Neon (Futurista)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-secondary" id="btnSaveConfig">Salvar Configuração</button>
+    </div>
+
+    <div class="extra-options"
+      style="margin-top: 20px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+
+      <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase;">Qualidade
+          do Vídeo (YT)</label>
+        <select id="resSelect"
+          style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #1e293b; color: white; border: 1px solid var(--border); outline: none;">
+          <option value="highest">Melhor (4K/HD)</option>
+          <option value="1080p">1080p (FHD)</option>
+          <option value="720p">720p (HD)</option>
+          <option value="480p">480p (SD)</option>
+          <option value="360p">360p (Mobile)</option>
+          <option value="lowest">Baixa (Econômico)</option>
+        </select>
+      </div>
+
+      <label
+        style="display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; cursor: pointer;">
+        <input type="checkbox" id="chkAudioOnly"> 🎵 Baixar Somente Áudio (YouTube)
+      </label>
+      <label
+        style="display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; cursor: pointer;">
+        <input type="checkbox" id="chkSubs"> 💬 Download de Legendas (YouTube)
+      </label>
+      <label
+        style="display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; cursor: pointer;">
+        <input type="checkbox" id="chkGifMode"> 🎞️ Converter em GIF (Primeiros 5s)
+      </label>
+      <label
+        style="display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; cursor: pointer;">
+        <input type="checkbox" id="chkSmartNaming" checked> 🏷️ Usar Título Real como Nome
+      </label>
+      <label
+        style="display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 8px; cursor: pointer;">
+        <input type="checkbox" id="chkCopyLink"> 🔗 Apenas Copiar Link Direto (Menos falhas)
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+        <input type="checkbox" id="chkShowQR"> 📱 Gerar QR Code (Para baixar no celular)
+      </label>
+    </div>
+
+    <!-- QR CODE MODAL -->
+    <div id="qrContainer">
+      <h3 style="margin-top: 0; color: white;">Scan para Celular</h3>
+      <p style="font-size: 11px; color: #ccc; margin-bottom: 15px;">Escaneie com a câmera para baixar direto no
+        smartphone.</p>
+      <img id="qrImage" src="" alt="QR Code" style="width: 160px; height: 160px;">
+      <button class="btn btn-secondary" id="btnCloseQR" style="margin-top: 10px;">Fechar</button>
+    </div>
+
+  </div>
+
+  <!-- MEDIA PREVIEW -->
+  <div id="mediaPreview" class="media-preview">
+    <img id="previewImg" src="" alt="Thumbnail">
+    <video id="previewVideo" controls
+      style="width: 100%; max-height: 180px; border-radius: 6px; background: black; display: none;"></video>
+    <div id="previewTitle" class="title">Carregando informações...</div>
+  </div>
+
+  <!-- GLOBAL STATUS DISPLAY -->
+  <div class="status-box" id="globalStatus"></div>
+
+  <!-- PROGRESS BAR -->
+  <div id="progressContainer"
+    style="display: none; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 10px; overflow: hidden;">
+    <div id="progressBar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease;">
+    </div>
+  </div>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>
