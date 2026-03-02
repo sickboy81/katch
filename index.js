@@ -165,6 +165,30 @@ app.post('/download', async (req, res) => {
 
         }
 
+        // 5. REDDIT
+        else if (url.includes('reddit.com')) {
+            console.log("  -> Link detectado: Reddit");
+            finalFilename = `reddit_${timestamp}.mp4`;
+            outputPath = path.join(downloadsDir, finalFilename);
+
+            const cleanRedditUrl = url.split('?')[0].replace(/\/$/, '') + '.json';
+            const response = await axios.get(cleanRedditUrl);
+            const postData = response.data[0]?.data?.children[0]?.data;
+            let videoUrl = postData?.secure_media?.reddit_video?.fallback_url || postData?.media?.reddit_video?.fallback_url;
+
+            if (!videoUrl) {
+                return res.status(404).json({ success: false, error: 'Vídeo do Reddit não encontrado.' });
+            }
+
+            if (justLink) {
+                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+            }
+
+            await downloadFromDirectLink(videoUrl, outputPath);
+            console.log(`  -> Sucesso: ${finalFilename}`);
+            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
+        }
+
         else {
             return res.status(400).json({ success: false, error: 'Plataforma não suportada. Use Youtube, Instagram, X ou TikTok.' });
         }
