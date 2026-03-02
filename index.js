@@ -242,8 +242,93 @@ app.post('/download', async (req, res) => {
             return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
         }
 
+        // 8. PINTEREST
+        else if (url.includes('pinterest.com') || url.includes('pin.it')) {
+            console.log("  -> Link detectado: Pinterest");
+            finalFilename = `pinterest_${timestamp}.mp4`;
+            outputPath = path.join(downloadsDir, finalFilename);
+
+            // Fetch the page
+            const { data: html } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+
+            // Procura a URL do vídeo de alta qualidade dentro da tag do Pinterest ou og:video
+            let videoUrl = null;
+            const videoMatch = html.match(/"contentUrl":"([^"]+)"/);
+            if (videoMatch) {
+                videoUrl = videoMatch[1].replace(/\\/g, '');
+            } else {
+                const alternateMatch = html.match(/<meta property="v:url" content="([^"]+)"/);
+                if (alternateMatch) videoUrl = alternateMatch[1];
+            }
+
+            // Converter final se for M3U8 para MP4 caso haja um link MP4 disponível?
+            // Pinterest geralmente coloca VODs diretos.
+            // Para m3u8 não funcionará apenas via fs.createWriteStream, mas assumimos vídeos nativos .mp4
+
+            if (!videoUrl || videoUrl.includes('.m3u8')) {
+                // Tenta puxar MP4 da estrutura de dados do pin
+                const mp4Match = html.match(/https:\/\/[^"]+\.mp4/);
+                if (mp4Match) videoUrl = mp4Match[0].replace(/\\/g, '');
+            }
+
+            if (!videoUrl) {
+                return res.status(404).json({ success: false, error: 'Vídeo do Pinterest não encontrado.' });
+            }
+
+            if (justLink) {
+                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+            }
+
+            await downloadFromDirectLink(videoUrl, outputPath);
+            console.log(`  -> Sucesso: ${finalFilename}`);
+            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
+        }
+
+        // 9. VIMEO
+        else if (url.includes('vimeo.com')) {
+            console.log("  -> Link detectado: Vimeo");
+            finalFilename = `vimeo_${timestamp}.mp4`;
+            outputPath = path.join(downloadsDir, finalFilename);
+
+            const { data: html } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+
+            // Vimeo guarda as URLs do MP4 no configUrl ou num objeto JSON direto no HTML (window.vimeo.clip_page_config)
+            const configMatch = html.match(/(https:\/\/player\.vimeo\.com\/video\/[0-9]+\/config[^"]+)/);
+            let videoUrl = null;
+
+            if (configMatch) {
+                const configUrl = configMatch[1].replace(/\\/g, '').replace(/&amp;/g, '&');
+                const { data: configData } = await axios.get(configUrl);
+
+                const progressiveVideos = configData?.request?.files?.progressive;
+                if (progressiveVideos && progressiveVideos.length > 0) {
+                    // Pega o de melhor qualidade
+                    const bestVideo = progressiveVideos.reduce((prev, current) => (+prev.width > +current.width) ? prev : current);
+                    videoUrl = bestVideo.url;
+                }
+            } else {
+                // Alternativa via metatag ou json
+                const mp4Match = html.match(/"url":"(https:\/\/[^"]+\.mp4[^"]*)"/);
+                if (mp4Match) {
+                    videoUrl = mp4Match[1].replace(/\\/g, '');
+                }
+            }
+
+            if (!videoUrl) {
+                return res.status(404).json({ success: false, error: 'Vídeo do Vimeo não encontrado ou é protegido.' });
+            }
+
+            if (justLink) {
+                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+            }
+
+            await downloadFromDirectLink(videoUrl, outputPath);
+            console.log(`  -> Sucesso: ${finalFilename}`);
+            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
+        }
+
         else {
-            return res.status(400).json({ success: false, error: 'Plataforma não suportada. Use Youtube, Instagram, X, TikTok, Reddit, Facebook ou Tumblr.' });
+            return res.status(400).json({ success: false, error: 'Plataforma não suportada. Use Youtube, Instagram, X, TikTok, Reddit, Facebook, Tumblr, Pinterest ou Vimeo.' });
         }
 
     } catch (err) {
@@ -255,6 +340,6 @@ app.post('/download', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`========================================================`);
     console.log(`🎬 Servidor de Download iniciado na porta: ${PORT}`);
-    console.log(`✅ Suporte a: YouTube, Instagram, X, TikTok, Reddit, FB e Tumblr!`);
+    console.log(`✅ Suporte a: YouTube, Instagram, X, TikTok, Reddit, FB, Tumblr, Pinterest e Vimeo!`);
     console.log(`========================================================`);
 });
