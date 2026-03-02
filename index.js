@@ -95,6 +95,10 @@ app.post('/download', async (req, res) => {
 
             const directUrl = links.url_list[0];
 
+            const isImage = directUrl.includes('.jpg') || directUrl.includes('.webp') || directUrl.includes('.png');
+            finalFilename = `instagram_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+            outputPath = path.join(downloadsDir, finalFilename);
+
             if (justLink) {
                 return res.json({ success: true, downloadUrl: directUrl, directLink: directUrl });
             }
@@ -125,8 +129,12 @@ app.post('/download', async (req, res) => {
             }
 
             if (!videoUrlToDownload) {
-                return res.status(404).json({ success: false, error: 'Nenhum vídeo extraído desse Tweet.' });
+                return res.status(404).json({ success: false, error: 'Nenhuma mídia extraída desse Tweet.' });
             }
+
+            const isImage = videoUrlToDownload.includes('.jpg') || videoUrlToDownload.includes('.png');
+            finalFilename = `twitter_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+            outputPath = path.join(downloadsDir, finalFilename);
 
             // Se o usuário só quer o link, interrompe e devolve a URL externa extraida
             if (justLink) {
@@ -149,11 +157,24 @@ app.post('/download', async (req, res) => {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
             });
 
-            if (!response.data || !response.data.data || !response.data.data.play) {
-                return res.status(500).json({ success: false, error: 'Falha ao buscar vídeo no TikTok. O formato da URL pode ser inválido.' });
+            let downloadLink = null;
+            let isImage = false;
+
+            if (response.data && response.data.data) {
+                if (response.data.data.play) {
+                    downloadLink = response.data.data.play;
+                } else if (response.data.data.images && response.data.data.images.length > 0) {
+                    downloadLink = response.data.data.images[0];
+                    isImage = true;
+                }
             }
 
-            const downloadLink = response.data.data.play; // direct link for play without watermark
+            if (!downloadLink) {
+                return res.status(500).json({ success: false, error: 'Falha ao buscar mídia no TikTok. Pode ser conta privada ou formato inválido.' });
+            }
+
+            finalFilename = `tiktok_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+            outputPath = path.join(downloadsDir, finalFilename);
 
             if (justLink) {
                 return res.json({ success: true, downloadUrl: downloadLink, directLink: downloadLink });
@@ -174,17 +195,30 @@ app.post('/download', async (req, res) => {
             const cleanRedditUrl = url.split('?')[0].replace(/\/$/, '') + '.json';
             const response = await axios.get(cleanRedditUrl);
             const postData = response.data[0]?.data?.children[0]?.data;
-            let videoUrl = postData?.secure_media?.reddit_video?.fallback_url || postData?.media?.reddit_video?.fallback_url;
+            let mediaUrl = postData?.secure_media?.reddit_video?.fallback_url || postData?.media?.reddit_video?.fallback_url;
+            let isImage = false;
 
-            if (!videoUrl) {
-                return res.status(404).json({ success: false, error: 'Vídeo do Reddit não encontrado.' });
+            if (!mediaUrl) {
+                mediaUrl = postData?.url_overridden_by_dest || postData?.url;
+                if (mediaUrl && (mediaUrl.includes('.jpg') || mediaUrl.includes('.png') || mediaUrl.includes('.gif'))) {
+                    isImage = true;
+                } else {
+                    mediaUrl = null;
+                }
             }
+
+            if (!mediaUrl) {
+                return res.status(404).json({ success: false, error: 'Mídia do Reddit não encontrada.' });
+            }
+
+            finalFilename = `reddit_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+            outputPath = path.join(downloadsDir, finalFilename);
 
             if (justLink) {
-                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+                return res.json({ success: true, downloadUrl: mediaUrl, directLink: mediaUrl });
             }
 
-            await downloadFromDirectLink(videoUrl, outputPath);
+            await downloadFromDirectLink(mediaUrl, outputPath);
             console.log(`  -> Sucesso: ${finalFilename}`);
             return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
         }
@@ -202,17 +236,29 @@ app.post('/download', async (req, res) => {
             // Regex basicas para extrair URLs de vídeo do FB (SD/HD)
             const hdMatch = html.match(/hd_src:"([^"]+)"/);
             const sdMatch = html.match(/sd_src:"([^"]+)"/);
-            const videoUrl = hdMatch ? hdMatch[1] : (sdMatch ? sdMatch[1] : null);
+            let mediaUrl = hdMatch ? hdMatch[1] : (sdMatch ? sdMatch[1] : null);
+            let isImage = false;
 
-            if (!videoUrl) {
-                return res.status(404).json({ success: false, error: 'Não foi possível encontrar o vídeo neste link do Facebook. Pode ser um vídeo privado ou o link expirou.' });
+            if (!mediaUrl) {
+                const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
+                if (imgMatch) {
+                    mediaUrl = imgMatch[1].replace(/\\/g, '');
+                    isImage = true;
+                }
             }
+
+            if (!mediaUrl) {
+                return res.status(404).json({ success: false, error: 'Não foi possível encontrar a mídia neste link do Facebook. Pode ser privada ou o link expirou.' });
+            }
+
+            finalFilename = `fb_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+            outputPath = path.join(downloadsDir, finalFilename);
 
             if (justLink) {
-                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+                return res.json({ success: true, downloadUrl: mediaUrl, directLink: mediaUrl });
             }
 
-            await downloadFromDirectLink(videoUrl, outputPath);
+            await downloadFromDirectLink(mediaUrl, outputPath);
             console.log(`  -> Sucesso: ${finalFilename}`);
             return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
         }
@@ -227,17 +273,29 @@ app.post('/download', async (req, res) => {
 
             // Procura por meta og:video ou src do vídeo
             const videoMatch = html.match(/<meta property="og:video" content="([^"]+)"/) || html.match(/source src="([^"]+)"/);
-            const videoUrl = videoMatch ? videoMatch[1] : null;
+            let mediaUrl = videoMatch ? videoMatch[1] : null;
+            let isImage = false;
 
-            if (!videoUrl) {
-                return res.status(404).json({ success: false, error: 'Vídeo do Tumblr não encontrado.' });
+            if (!mediaUrl) {
+                const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
+                if (imgMatch) {
+                    mediaUrl = imgMatch[1];
+                    isImage = true;
+                }
             }
+
+            if (!mediaUrl) {
+                return res.status(404).json({ success: false, error: 'Mídia do Tumblr não encontrada.' });
+            }
+
+            finalFilename = `tumblr_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+            outputPath = path.join(downloadsDir, finalFilename);
 
             if (justLink) {
-                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+                return res.json({ success: true, downloadUrl: mediaUrl, directLink: mediaUrl });
             }
 
-            await downloadFromDirectLink(videoUrl, outputPath);
+            await downloadFromDirectLink(mediaUrl, outputPath);
             console.log(`  -> Sucesso: ${finalFilename}`);
             return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
         }
@@ -252,34 +310,48 @@ app.post('/download', async (req, res) => {
             const { data: html } = await axios.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
 
             // Procura a URL do vídeo de alta qualidade dentro da tag do Pinterest ou og:video
-            let videoUrl = null;
+            let mediaUrl = null;
+            let isImage = false;
+
             const videoMatch = html.match(/"contentUrl":"([^"]+)"/);
             if (videoMatch) {
-                videoUrl = videoMatch[1].replace(/\\/g, '');
+                mediaUrl = videoMatch[1].replace(/\\/g, '');
             } else {
                 const alternateMatch = html.match(/<meta property="v:url" content="([^"]+)"/);
-                if (alternateMatch) videoUrl = alternateMatch[1];
+                if (alternateMatch) mediaUrl = alternateMatch[1];
             }
 
             // Converter final se for M3U8 para MP4 caso haja um link MP4 disponível?
             // Pinterest geralmente coloca VODs diretos.
             // Para m3u8 não funcionará apenas via fs.createWriteStream, mas assumimos vídeos nativos .mp4
 
-            if (!videoUrl || videoUrl.includes('.m3u8')) {
+            if (!mediaUrl || mediaUrl.includes('.m3u8')) {
                 // Tenta puxar MP4 da estrutura de dados do pin
                 const mp4Match = html.match(/https:\/\/[^"]+\.mp4/);
-                if (mp4Match) videoUrl = mp4Match[0].replace(/\\/g, '');
+                if (mp4Match) mediaUrl = mp4Match[0].replace(/\\/g, '');
             }
 
-            if (!videoUrl) {
-                return res.status(404).json({ success: false, error: 'Vídeo do Pinterest não encontrado.' });
+            // Fallback to image
+            if (!mediaUrl) {
+                const imgMatch = html.match(/<meta property="og:image" name="og:image" content="([^"]+)"/) || html.match(/<meta property="og:image" content="([^"]+)"/) || html.match(/<meta name="og:image" content="([^"]+)"/);
+                if (imgMatch) {
+                    mediaUrl = imgMatch[1];
+                    isImage = true;
+                }
             }
+
+            if (!mediaUrl) {
+                return res.status(404).json({ success: false, error: 'Mídia do Pinterest não encontrada.' });
+            }
+
+            finalFilename = `pinterest_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+            outputPath = path.join(downloadsDir, finalFilename);
 
             if (justLink) {
-                return res.json({ success: true, downloadUrl: videoUrl, directLink: videoUrl });
+                return res.json({ success: true, downloadUrl: mediaUrl, directLink: mediaUrl });
             }
 
-            await downloadFromDirectLink(videoUrl, outputPath);
+            await downloadFromDirectLink(mediaUrl, outputPath);
             console.log(`  -> Sucesso: ${finalFilename}`);
             return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
         }
