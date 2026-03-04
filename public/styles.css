@@ -48,7 +48,7 @@ body {
     left: -10%;
     width: 50vw;
     height: 50vw;
-    background: radial-gradient(circle, rgba(88,166,255,0.4) 0%, rgba(0,0,0,0) 70%);
+    background: radial-gradient(circle, rgba(88, 166, 255, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
 }
 
 .blob-2 {
@@ -56,7 +56,7 @@ body {
     right: -10%;
     width: 60vw;
     height: 60vw;
-    background: radial-gradient(circle, rgba(188,140,255,0.3) 0%, rgba(0,0,0,0) 70%);
+    background: radial-gradient(circle, rgba(188, 140, 255, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
     animation-delay: -5s;
 }
 
@@ -65,14 +65,22 @@ body {
     left: 60%;
     width: 40vw;
     height: 40vw;
-    background: radial-gradient(circle, rgba(59,185,130,0.2) 0%, rgba(0,0,0,0) 70%);
+    background: radial-gradient(circle, rgba(59, 185, 130, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
     animation-delay: -10s;
 }
 
 @keyframes float {
-    0% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(5%, 10%) scale(1.1); }
-    100% { transform: translate(-5%, 5%) scale(0.9); }
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+        transform: translate(5%, 10%) scale(1.1);
+    }
+
+    100% {
+        transform: translate(-5%, 5%) scale(0.9);
+    }
 }
 
 .container {
@@ -124,7 +132,7 @@ h1 {
     padding: 40px;
     border-radius: 20px;
     margin-bottom: 40px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     animation: fadeInUp 1s ease-out 0.2s both;
 }
 
@@ -168,7 +176,7 @@ h1 {
     border: 1px solid var(--border);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
     animation: fadeInUp 1s ease-out 0.4s both;
 }
 
@@ -222,7 +230,7 @@ h1 {
 }
 
 .highlight {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: #58a6ff;
     padding: 4px 8px;
     border-radius: 4px;
@@ -248,24 +256,104 @@ footer {
 }
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 40px;
+    animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.feature-card {
+    background: var(--card-bg);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    padding: 22px 18px;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(88, 166, 255, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.feature-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.feature-card h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 8px 0;
+}
+
+.feature-card p {
+    font-size: 0.82rem;
+    color: #8b949e;
+    line-height: 1.5;
+    margin: 0;
 }
 
 /* Responsiveness */
 @media (max-width: 600px) {
-    h1 { font-size: 2.2rem; }
-    .hero, .installation-guide { padding: 25px; }
-    .step { flex-direction: column; text-align: center; gap: 10px; }
-    .step:hover { transform: translateY(-5px); }
+    h1 {
+        font-size: 2.2rem;
+    }
+
+    .hero,
+    .installation-guide {
+        padding: 25px;
+    }
+
+    .step {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .step:hover {
+        transform: translateY(-5px);
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+    }
 }

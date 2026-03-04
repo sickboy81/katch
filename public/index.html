@@ -1,39 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Katch - Pescador de Vídeos</title>
+    <meta name="description"
+        content="Baixe vídeos do YouTube, Instagram, TikTok e muito mais. Tire print de páginas inteiras. Tudo com um clique, direto do seu navegador.">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="background-elements">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
         <div class="blob blob-3"></div>
     </div>
-    
+
     <div class="container">
         <header>
             <div class="logo">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
                 <h1>Katch</h1>
             </div>
-            <p class="subtitle">O ímã supremo de vídeos!</p>
+            <p class="subtitle">O ímã supremo de conteúdo!</p>
         </header>
 
         <main>
             <section class="hero">
-                <p>Extraia e baixe vídeos no YouTube, Instagram, X, TikTok, Reddit, Facebook e muito mais, <strong>sem marca d'água</strong> e direto do seu navegador.</p>
+                <p>Baixe vídeos, salve imagens e capture páginas inteiras — tudo direto do seu navegador, <strong>sem
+                        marca d'água</strong>.</p>
                 <a href="/katch-extension.zip" class="btn-download" download>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
                     Baixar Extensão (.zip)
                 </a>
+            </section>
+
+            <!-- Features -->
+            <section class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🎬</div>
+                    <h3>Download de Vídeos</h3>
+                    <p>YouTube, Instagram, TikTok, X (Twitter), Reddit, Facebook, Vimeo e muito mais — sem marca d'água.
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <h3>Print da Página Inteira</h3>
+                    <p>Capture qualquer site do topo ao rodapé em uma única imagem de alta resolução, mesmo que ela seja
+                        muito longa.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖼️</div>
+                    <h3>Salvar Imagens</h3>
+                    <p>Baixe imagens diretamente de qualquer site — feeds do Instagram, Pinterest, Twitter e outros.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Download em Lote</h3>
+                    <p>Escaneie perfis inteiros e baixe dezenas de vídeos ou imagens de uma só vez com um clique.</p>
+                </div>
             </section>
 
             <section class="installation-guide">
@@ -41,11 +78,13 @@
                 <div class="steps">
                     <div class="step">
                         <div class="step-number">1</div>
-                        <p>Baixe o arquivo <strong>.zip</strong> no botão acima e extraia em uma pasta no seu computador.</p>
+                        <p>Baixe o arquivo <strong>.zip</strong> no botão acima e extraia em uma pasta no seu
+                            computador.</p>
                     </div>
                     <div class="step">
                         <div class="step-number">2</div>
-                        <p>Abra o Chrome (ou o seu navegador Chromium) e acesse: <code class="highlight">chrome://extensions/</code></p>
+                        <p>Abra o Chrome (ou o seu navegador Chromium) e acesse: <code
+                                class="highlight">chrome://extensions/</code></p>
                     </div>
                     <div class="step">
                         <div class="step-number">3</div>
@@ -53,28 +92,17 @@
                     </div>
                     <div class="step">
                         <div class="step-number">4</div>
-                        <p>Clique em <strong>"Carregar sem compactação"</strong> e selecione a pasta que você extraiu.</p>
-                    </div>
-                    <div class="step">
-                        <div class="step-number">5</div>
-                        <p>IMPORTANTE: Abra a extensão, vá na aba de <strong>Configurações ⚙️</strong> e cole a URL abaixo no campo "Servidor da API":</p>
-                        <code class="highlight dynamic-url">http://localhost:3000</code>
+                        <p>Clique em <strong>"Carregar sem compactação"</strong>, selecione a pasta extraída e pronto!
+                            🎉</p>
                     </div>
                 </div>
             </section>
         </main>
-        
+
         <footer>
-            <p>A ferramenta conecta sua extensão local a esta API que faz a extração de forma transparente.</p>
+            <p>Feito com 🎣 para pescadores de conteúdo.</p>
         </footer>
     </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentUrl = window.location.origin;
-            const codeElements = document.querySelectorAll('.dynamic-url');
-            codeElements.forEach(el => el.textContent = currentUrl);
-        });
-    </script>
 </body>
+
 </html>
