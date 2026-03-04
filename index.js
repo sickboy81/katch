@@ -74,6 +74,11 @@ app.post('/download', async (req, res) => {
                     dumpJson: true,
                     noCheckCertificates: true,
                     noWarnings: true,
+                    addHeader: [
+                        'referer:https://www.youtube.com/',
+                        'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                    ],
+                    extractorArgs: 'youtube:player_client=android,web',
                     f: audioOnly
                         ? 'bestaudio[ext=m4a]/bestaudio'
                         : 'best[ext=mp4]/best'
@@ -156,6 +161,11 @@ app.post('/download', async (req, res) => {
                 await youtubedl(`ytsearch1:${query}`, {
                     noCheckCertificates: true,
                     noWarnings: true,
+                    addHeader: [
+                        'referer:https://www.youtube.com/',
+                        'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                    ],
+                    extractorArgs: 'youtube:player_client=android,web',
                     extractAudio: true,
                     audioFormat: 'mp3',
                     output: outputPath
