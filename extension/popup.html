@@ -410,18 +410,36 @@
   </div>
 
   <div class="tabs">
-    <div class="tab active" data-target="tab-auto">Auto</div>
+    <div class="tab active" data-target="tab-screenshot">📸 Print</div>
+    <div class="tab" data-target="tab-auto">Auto</div>
     <div class="tab" data-target="tab-manual">Manual</div>
     <div class="tab" data-target="tab-batch">Lote</div>
-    <div class="tab" data-target="tab-screenshot">Print</div>
     <div class="tab" data-target="tab-history">Baixados</div>
     <div class="tab" data-target="tab-config">⚙️</div>
   </div>
 
   <div class="container">
 
+    <!-- SCREENSHOT TAB (Primeira aba) -->
+    <div id="tab-screenshot" class="section-content active">
+      <div class="input-group" style="text-align: center; margin-bottom: 25px;">
+        <label>Captura de Página Completa</label>
+        <span style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Transforme qualquer site em uma imagem
+          longa e salvável.</span>
+      </div>
+      <button class="btn" id="btnFullCapture">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+          <polyline points="21 15 16 10 5 21"></polyline>
+        </svg>
+        Gerar Print Completo
+      </button>
+    </div>
+
     <!-- AUTO TAB (Current Tab Download) -->
-    <div id="tab-auto" class="section-content active">
+    <div id="tab-auto" class="section-content">
       <div class="input-group" style="text-align: center; margin-bottom: 25px;">
         <label>Detectar Mídia na Aba Ativa</label>
         <span style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Acesse YouTube, Instagram, X ou TikTok
@@ -512,23 +530,7 @@
       </div>
     </div>
 
-    <!-- SCREENSHOT TAB -->
-    <div id="tab-screenshot" class="section-content">
-      <div class="input-group" style="text-align: center; margin-bottom: 25px;">
-        <label>Captura de Página Completa</label>
-        <span style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">Transforme qualquer site em uma imagem
-          longa e salvável.</span>
-      </div>
-      <button class="btn" id="btnFullCapture">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-          <circle cx="8.5" cy="8.5" r="1.5"></circle>
-          <polyline points="21 15 16 10 5 21"></polyline>
-        </svg>
-        Gerar Print Completo
-      </button>
-    </div>
+
 
     <!-- HISTORY TAB -->
     <div id="tab-history" class="section-content">
@@ -547,12 +549,8 @@
     <!-- SETTINGS TAB -->
     <div id="tab-config" class="section-content">
       <div class="settings-notice">
-        <strong>Modo de Nuvem:</strong> Se você hospedou o servidor no Render.com, cole a URL pública abaixo. Senão,
-        mantenha localhost.
-      </div>
-      <div class="input-group">
-        <label>Endereço do Servidor Web</label>
-        <input type="text" id="configServerUrl" placeholder="http://localhost:3000">
+        🌐 <strong>Servidor:</strong> <code
+          style="color: var(--primary); font-size: 10px;">https://katch.onrender.com</code>
       </div>
 
       <div class="input-group">

@@ -2,7 +2,7 @@
 // KATCH BACKGROUND - DOWNLOADS AUTOMATIZADOS
 // ==========================================
 
-let serverUrl = "http://localhost:3001";
+let serverUrl = "https://katch.onrender.com";
 
 // Carrega o servidor configurado
 chrome.storage.local.get(['serverUrl'], (data) => {

@@ -3,7 +3,7 @@
 // ==========================================
 
 // Global state variables
-let SERVER_URL = "http://localhost:3001";
+let SERVER_URL = "https://katch.onrender.com";
 
 // DOM Elements
 const tabs = document.querySelectorAll('.tab');
@@ -75,10 +75,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (data.serverUrl) {
-    SERVER_URL = data.serverUrl;
-    configServerUrl.value = SERVER_URL;
-  } else {
-    configServerUrl.value = SERVER_URL;
+    SERVER_URL = data.serverUrl; // sobrescreve só se tiver salvo manualmente no passado
   }
 
   renderHistory(data.downloadHistory || []);
