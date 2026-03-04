@@ -6,7 +6,7 @@ const axios = require('axios');
 const youtubedl = require('youtube-dl-exec');
 const cheerio = require('cheerio');
 const getTwitterMedia = require('get-twitter-media');
-const { getPreview } = require('spotify-url-info')(axios);
+const { getPreview } = require('spotify-url-info')(fetch);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
