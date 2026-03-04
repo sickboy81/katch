@@ -6,6 +6,7 @@ const axios = require('axios');
 const youtubedl = require('youtube-dl-exec');
 const cheerio = require('cheerio');
 const getTwitterMedia = require('get-twitter-media');
+const { getPreview } = require('spotify-url-info')(axios);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -136,6 +137,36 @@ app.post('/download', async (req, res) => {
             } catch (e) {
                 console.error(e);
                 return res.status(500).json({ success: false, error: 'O link do Instagram é privado ou mudou de formato. Use vídeos públicos.' });
+            }
+        }
+
+        // 3. SPOTIFY
+        else if (url.includes('spotify.com')) {
+            console.log("  -> Link detectado: Spotify");
+            try {
+                // Obter dados da música (Artista e Título)
+                const metadata = await getPreview(url);
+                const query = `${metadata.artist} - ${metadata.title}`;
+                console.log(`     Buscando no YouTube: ${query}`);
+
+                finalFilename = `spotify_${timestamp}_${metadata.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp3`;
+                outputPath = path.join(downloadsDir, finalFilename);
+
+                // Pesquisa 1 resultado no Youtube e baixa como MP3
+                await youtubedl(`ytsearch1:${query}`, {
+                    noCheckCertificates: true,
+                    noWarnings: true,
+                    extractAudio: true,
+                    audioFormat: 'mp3',
+                    output: outputPath
+                });
+
+                console.log(`  -> Sucesso (Spotify/YT): ${finalFilename}`);
+                return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}`, title: query });
+
+            } catch (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, error: 'Falha Spotify: ' + err.message });
             }
         }
 
