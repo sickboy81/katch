@@ -3,8 +3,8 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
-const ytdl = require('@distube/ytdl-core');
-const instagramGetUrl = require('instagram-url-direct');
+const youtubedl = require('youtube-dl-exec');
+const cheerio = require('cheerio');
 const getTwitterMedia = require('get-twitter-media');
 
 const app = express();
@@ -12,6 +12,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Servir a landing page (onde a extensão pode ser baixada)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Pasta temporária para downloads
 const downloadsDir = path.join(__dirname, 'downloads');
@@ -60,26 +63,39 @@ app.post('/download', async (req, res) => {
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             console.log("  -> Link detectado: YouTube");
 
-            // No caso do YouTube os links diretos expiram com IP, por isso o justLink não faz sentido
-            // Nós sempre devemos baixar e servir
             finalFilename = `youtube_${timestamp}${audioOnly ? '_audio.mp4' : '.mp4'}`;
             outputPath = path.join(downloadsDir, finalFilename);
 
-            const filterType = audioOnly ? 'audioonly' : 'audioandvideo';
-            const stream = ytdl(url, { quality: 'highest', filter: filterType });
-            stream.pipe(fs.createWriteStream(outputPath));
+            try {
+                // Usa yt-dlp apenas para extrair a URL direta, depois baixa com axios.
+                // Isso evita problemas de paths com espaços no --output do yt-dlp.
+                const info = await youtubedl(url, {
+                    dumpJson: true,
+                    noCheckCertificates: true,
+                    noWarnings: true,
+                    f: audioOnly
+                        ? 'bestaudio[ext=m4a]/bestaudio'
+                        : 'best[ext=mp4]/best'
+                });
 
-            return new Promise((resolve) => {
-                stream.on('finish', () => {
-                    console.log(`  -> Sucesso: ${finalFilename}`);
-                    res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
-                    resolve();
-                });
-                stream.on('error', (err) => {
-                    res.status(500).json({ success: false, error: 'Falha YouTube: ' + err.message });
-                    resolve();
-                });
-            });
+                // Pega a URL do melhor formato disponível
+                let directUrl = info.url;
+                if (!directUrl && info.formats && info.formats.length > 0) {
+                    // Prefere mp4, senão pega o último (melhor qualidade)
+                    const mp4 = info.formats.slice().reverse().find(f => f.ext === 'mp4' && f.url);
+                    directUrl = (mp4 || info.formats[info.formats.length - 1]).url;
+                }
+
+                if (!directUrl) throw new Error('URL de vídeo não encontrada.');
+
+                await downloadFromDirectLink(directUrl, outputPath);
+
+                console.log(`  -> Sucesso (yt-dlp URL): ${finalFilename}`);
+                return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}`, title: info.title || '' });
+            } catch (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, error: 'Falha YouTube: ' + err.message });
+            }
         }
 
         // 2. INSTAGRAM
@@ -88,24 +104,39 @@ app.post('/download', async (req, res) => {
             finalFilename = `instagram_${timestamp}.mp4`;
             outputPath = path.join(downloadsDir, finalFilename);
 
-            const links = await instagramGetUrl(url);
-            if (!links || !links.url_list || links.url_list.length === 0) {
-                return res.status(404).json({ success: false, error: 'Vídeo do Instagram não encontrado ou privado.' });
+            try {
+                const info = await youtubedl(url, {
+                    dumpJson: true,
+                    noCheckCertificates: true,
+                    noWarnings: true
+                });
+
+                let directUrl = info.url || (info.formats && info.formats.length > 0 ? info.formats[info.formats.length - 1].url : null);
+
+                if (!directUrl) {
+                    throw new Error("Mídia não extraída da API do yt-dlp.");
+                }
+
+                let isImage = false;
+                if (directUrl.includes('.jpg') || directUrl.includes('.webp') || directUrl.includes('.png')) {
+                    isImage = true;
+                }
+
+                finalFilename = `instagram_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
+                outputPath = path.join(downloadsDir, finalFilename);
+
+                if (justLink) {
+                    return res.json({ success: true, downloadUrl: directUrl, directLink: directUrl });
+                }
+
+                await downloadFromDirectLink(directUrl, outputPath);
+                console.log(`  -> Sucesso: ${finalFilename}`);
+                return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}`, title: info.title || '' });
+
+            } catch (e) {
+                console.error(e);
+                return res.status(500).json({ success: false, error: 'O link do Instagram é privado ou mudou de formato. Use vídeos públicos.' });
             }
-
-            const directUrl = links.url_list[0];
-
-            const isImage = directUrl.includes('.jpg') || directUrl.includes('.webp') || directUrl.includes('.png');
-            finalFilename = `instagram_${timestamp}${isImage ? '.jpg' : '.mp4'}`;
-            outputPath = path.join(downloadsDir, finalFilename);
-
-            if (justLink) {
-                return res.json({ success: true, downloadUrl: directUrl, directLink: directUrl });
-            }
-
-            await downloadFromDirectLink(directUrl, outputPath);
-            console.log(`  -> Sucesso: ${finalFilename}`);
-            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}` });
         }
 
         // 3. X / TWITTER
