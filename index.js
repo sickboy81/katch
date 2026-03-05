@@ -94,24 +94,52 @@ app.post('/download', async (req, res) => {
                                 : 'best[ext=mp4]/best'
                         });
                     } catch (ytErr) {
-                        console.log('  -> yt-dlp falhou completamente, tentando API Cobalt...');
-                        // TENTATIVA 3: Cobalt API (funciona em servidores sem navegador)
-                        const cobaltRes = await axios.post('https://api.cobalt.tools/', {
-                            url: url,
-                            downloadMode: audioOnly ? 'audio' : 'auto'
-                        }, {
-                            headers: {
-                                'Accept': 'application/json',
-                                'Content-Type': 'application/json'
-                            }
-                        });
+                        console.log('  -> yt-dlp falhou completamente, tentando Piped API...');
+                        // TENTATIVA 3: Piped API (proxy open-source do YouTube, sem cookies)
+                        // Extrai o ID do vídeo da URL
+                        let videoId = null;
+                        const idMatch = url.match(/(?:v=|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                        if (idMatch) videoId = idMatch[1];
 
-                        if (cobaltRes.data && cobaltRes.data.url) {
-                            await downloadFromDirectLink(cobaltRes.data.url, outputPath);
-                            console.log(`  -> Sucesso (Cobalt): ${finalFilename}`);
-                            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}`, title: '' });
+                        if (!videoId) throw new Error('Não foi possível extrair o ID do vídeo.');
+
+                        const pipedApis = [
+                            'https://pipedapi.kavin.rocks',
+                            'https://pipedapi.adminforge.de',
+                            'https://pipedapi.in.projectsegfau.lt'
+                        ];
+
+                        let pipedSuccess = false;
+                        for (const apiBase of pipedApis) {
+                            try {
+                                const pipedRes = await axios.get(`${apiBase}/streams/${videoId}`, { timeout: 10000 });
+                                const data = pipedRes.data;
+                                let streamUrl = null;
+
+                                if (audioOnly && data.audioStreams && data.audioStreams.length > 0) {
+                                    // Pega o áudio com maior bitrate
+                                    const best = data.audioStreams.sort((a, b) => b.bitrate - a.bitrate)[0];
+                                    streamUrl = best.url;
+                                } else if (data.videoStreams && data.videoStreams.length > 0) {
+                                    // Pega o melhor vídeo mp4
+                                    const mp4s = data.videoStreams.filter(s => s.mimeType && s.mimeType.includes('video/mp4') && s.videoOnly === false);
+                                    if (mp4s.length > 0) {
+                                        streamUrl = mp4s.sort((a, b) => b.bitrate - a.bitrate)[0].url;
+                                    } else {
+                                        streamUrl = data.videoStreams.sort((a, b) => b.bitrate - a.bitrate)[0].url;
+                                    }
+                                }
+
+                                if (streamUrl) {
+                                    await downloadFromDirectLink(streamUrl, outputPath);
+                                    console.log(`  -> Sucesso (Piped): ${finalFilename}`);
+                                    return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}`, title: data.title || '' });
+                                }
+                            } catch (pipedErr) {
+                                console.log(`  -> Piped ${apiBase} falhou, tentando próximo...`);
+                            }
                         }
-                        throw new Error('Todas as tentativas falharam para este vídeo.');
+                        throw new Error('Todas as tentativas falharam para este vídeo do YouTube.');
                     }
                 }
 
