@@ -68,26 +68,56 @@ app.post('/download', async (req, res) => {
             outputPath = path.join(downloadsDir, finalFilename);
 
             try {
-                // Usa yt-dlp apenas para extrair a URL direta, depois baixa com axios.
-                // Isso evita problemas de paths com espaços no --output do yt-dlp.
-                const info = await youtubedl(url, {
-                    dumpJson: true,
-                    noCheckCertificates: true,
-                    noWarnings: true,
-                    addHeader: [
-                        'referer:https://www.youtube.com/',
-                        'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-                    ],
-                    extractorArgs: 'youtube:player_client=android,web',
-                    f: audioOnly
-                        ? 'bestaudio[ext=m4a]/bestaudio'
-                        : 'best[ext=mp4]/best'
-                });
+                // TENTATIVA 1: yt-dlp com cookies do Chrome (funciona localmente)
+                let info;
+                try {
+                    info = await youtubedl(url, {
+                        dumpJson: true,
+                        noCheckCertificates: true,
+                        noWarnings: true,
+                        cookiesFromBrowser: 'chrome',
+                        f: audioOnly
+                            ? 'bestaudio[ext=m4a]/bestaudio'
+                            : 'best[ext=mp4]/best'
+                    });
+                } catch (cookieErr) {
+                    console.log('  -> Cookies do Chrome falharam, tentando sem cookies...');
+                    // TENTATIVA 2: yt-dlp com player_client alternativo (pode funcionar em servidores)
+                    try {
+                        info = await youtubedl(url, {
+                            dumpJson: true,
+                            noCheckCertificates: true,
+                            noWarnings: true,
+                            extractorArgs: 'youtube:player_client=mediaconnect',
+                            f: audioOnly
+                                ? 'bestaudio[ext=m4a]/bestaudio'
+                                : 'best[ext=mp4]/best'
+                        });
+                    } catch (ytErr) {
+                        console.log('  -> yt-dlp falhou completamente, tentando API Cobalt...');
+                        // TENTATIVA 3: Cobalt API (funciona em servidores sem navegador)
+                        const cobaltRes = await axios.post('https://api.cobalt.tools/', {
+                            url: url,
+                            downloadMode: audioOnly ? 'audio' : 'auto'
+                        }, {
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (cobaltRes.data && cobaltRes.data.url) {
+                            await downloadFromDirectLink(cobaltRes.data.url, outputPath);
+                            console.log(`  -> Sucesso (Cobalt): ${finalFilename}`);
+                            return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}`, title: '' });
+                        }
+                        throw new Error('Todas as tentativas falharam para este vídeo.');
+                    }
+                }
 
                 // Pega a URL do melhor formato disponível
                 let directUrl = info.url;
                 if (!directUrl && info.formats && info.formats.length > 0) {
-                    // Prefere mp4, senão pega o último (melhor qualidade)
                     const mp4 = info.formats.slice().reverse().find(f => f.ext === 'mp4' && f.url);
                     directUrl = (mp4 || info.formats[info.formats.length - 1]).url;
                 }
@@ -158,18 +188,27 @@ app.post('/download', async (req, res) => {
                 outputPath = path.join(downloadsDir, finalFilename);
 
                 // Pesquisa 1 resultado no Youtube e baixa como MP3
-                await youtubedl(`ytsearch1:${query}`, {
-                    noCheckCertificates: true,
-                    noWarnings: true,
-                    addHeader: [
-                        'referer:https://www.youtube.com/',
-                        'user-agent:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-                    ],
-                    extractorArgs: 'youtube:player_client=android,web',
-                    extractAudio: true,
-                    audioFormat: 'mp3',
-                    output: outputPath
-                });
+                // Tenta com cookies do Chrome, senão com player_client alternativo
+                try {
+                    await youtubedl(`ytsearch1:${query}`, {
+                        noCheckCertificates: true,
+                        noWarnings: true,
+                        cookiesFromBrowser: 'chrome',
+                        extractAudio: true,
+                        audioFormat: 'mp3',
+                        output: outputPath
+                    });
+                } catch (cookieErr) {
+                    console.log('  -> Cookies falharam para Spotify, tentando sem cookies...');
+                    await youtubedl(`ytsearch1:${query}`, {
+                        noCheckCertificates: true,
+                        noWarnings: true,
+                        extractorArgs: 'youtube:player_client=mediaconnect',
+                        extractAudio: true,
+                        audioFormat: 'mp3',
+                        output: outputPath
+                    });
+                }
 
                 console.log(`  -> Sucesso (Spotify/YT): ${finalFilename}`);
                 return res.json({ success: true, downloadUrl: `/downloads/${finalFilename}`, title: query });
